@@ -8,35 +8,17 @@ def prepare(pathToImage):
     image = Image.open(pathToImage)
     try:
         image = contrast(image)
-    except Exception:
-        print("-"*20)
-        print("contrast")
-        exit()
-    try:
         image = cutEdges(image)
-    except Exception:
-        print("-" * 20)
-        print("cutEdges")
-        exit()
-    try:
+        image = removeNoiseOnBorder(image)
+        image = cutEdges(image)
         image = removeNoise(image)
-    except Exception:
-        print("-" * 20)
-        print("removeNoise")
-        exit()
-    try:
         image = cutEdges(image)
-    except Exception:
-        print("-" * 20)
-        print("cutEdges 22222")
-        exit()
-    try:
         image = image.resize((32,32))
+        # image.show()
     except Exception:
         print("-" * 20)
-        print("resize")
+        print(pathToImage)
         exit()
-
     image.save("../prepare/" + pathToImage[9:])
     return list(image.getdata())
 
@@ -97,6 +79,63 @@ def removeNoise(image):
                         break
     return image
 
+def removeNoiseOnBorder(image):
+    offset = 11
+    width = image.size[0]+2
+    height = image.size[1]+2
+
+    newImage = Image.new("1", (width, height), 255)
+    newImage.paste(image, (1,1))
+    image = newImage
+    pixs = image.load()
+    draw = ImageDraw.Draw(image)
+
+    for r in reversed(range(1,offset)): # нижняя граница
+        X1 = 0
+        X2 = width - 1
+        Y1 = height - r
+        Y2 = height - 1
+        rectangle = (X1, Y1, X2+1, Y2+1)
+        one_piece = image.crop(rectangle)
+        if not checkBlackOnBoreder(one_piece):
+            draw.rectangle(rectangle, fill="white")
+            break
+
+    for r in reversed(range(1, offset)): # левая граница
+        X1 = 0
+        X2 = r
+        Y1 = 0
+        Y2 = height - 1
+        rectangle = (X1, Y1, X2 + 1, Y2 + 1)
+        one_piece = image.crop(rectangle)
+        if not checkBlackOnBoreder(one_piece):
+            draw.rectangle(rectangle, fill="white")
+            break
+
+    for r in reversed(range(1,offset)): # правая граница
+        X1 = width - r
+        X2 = width - 1
+        Y1 = 0
+        Y2 = height - 1
+        rectangle = (X1, Y1, X2+1, Y2+1)
+        one_piece = image.crop(rectangle)
+        if not checkBlackOnBoreder(one_piece):
+            draw.rectangle(rectangle, fill="white")
+            break
+
+    # for r in reversed(range(1,offset)): # верхняя граница закомментирован, т.к. может убрать часть буквы ц "й" и "ё"
+    #     X1 = 0
+    #     X2 = width - 1
+    #     Y1 = 0
+    #     Y2 = r
+    #     rectangle = (X1, Y1, X2+1, Y2+1)
+    #     one_piece = image.crop(rectangle)
+    #     if not checkBlackOnBoreder(one_piece):
+    #         draw.rectangle(rectangle, fill="white")
+    #         break
+
+    return image
+
 def checkBlackOnBoreder(image):
     pixs = image.load()
     width = image.size[0]
@@ -127,17 +166,3 @@ def convertToBits(pixels):
     # pp(counter)
 
     return bits
-
-def drawImage(bits2x):
-    width = len(bits2x)
-    height = len(bits2x[0])
-    imagwDraw = Image.new("1", (width, height), 255)
-    draw = ImageDraw.Draw(imagwDraw)
-    for row in range(width):
-        for col in range(height):
-            if bits2x[row, col] == 1:
-                draw.point((col, row), fill="white")
-            else:
-                draw.point((col, row), fill="black")
-
-    imagwDraw.show()

@@ -15,7 +15,7 @@ dirs = sorted(os.listdir(path_to_image_letters))
 sample = {}
 
 for dir in dirs:
-    # dir = "б"
+    # dir = "у"
     sample[dir] = []
     files = os.listdir(path_to_image_letters+"/"+dir)
     amountFiles = len(files)
@@ -24,7 +24,7 @@ for dir in dirs:
         print("Директория \"" + dir + "\" файл " + file)
         start = time.time()
         path_to_image_letter = path_to_image_letters + "/" + dir + "/" + file
-        path_to_image_letter = "../TRAIN/б/412.jpg"
+        # path_to_image_letter = "../TRAIN/у/28.jpg"
         sample[dir].append(prIm.prepare(path_to_image_letter))
 
         print("Время затраченное на обработку: " + str(time.time() - start))
